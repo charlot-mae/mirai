@@ -48,6 +48,11 @@ class Idol:
         return f"{self.name} ({self.age}) - {self.role}\n" \
                f"  Vocal {s['vocal']:>3} | Dance {s['dance']:>3} | Visual {s['visual']:>3} | Stamina {s['stamina']:>3} | Mental {s['mental']:>3}"
 
+    def roster_line(self):
+        s = self.stats
+        return f"{self.name} {self.age} - {self.role}\n" \
+               f"  Vocal {s['vocal']:>3} | Dance {s['dance']:>3} | Visual {s['visual']:>3} | Stamina {s['stamina']:>3} | Mental {s['mental']:>3}"
+
 @dataclass
 class GroupState:
     name: str
@@ -143,7 +148,7 @@ def show_profiles(state: GroupState):
 def show_roster(state: GroupState):
     print("\n--- Roster ---")
     for idx, idol in enumerate(state.idols, 1):
-        print(f"[{idx}] {idol.short_card()}")
+        print(f"[{idx}] {idol.roster_line()}")
 
 # ---------------------------- Persistence ----------------------------
 
