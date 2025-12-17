@@ -217,10 +217,12 @@ def load_state():
         print(f"\nSave data unreadable; starting new game. ({e})")
         return None
 
-def choose_int(prompt, lo, hi, allow_blank=False):
+def choose_int(prompt, lo, hi, allow_blank=False, allow_cancel=False):
     while True:
         raw = input(prompt).strip()
         if allow_blank and raw == "":
+            return None
+        if allow_cancel and raw == "0":
             return None
         if raw.isdigit():
             v = int(raw)
@@ -228,13 +230,17 @@ def choose_int(prompt, lo, hi, allow_blank=False):
                 return v
         print(f"Enter a number between {lo} and {hi}.")
 
-def choose_from(prompt, options):
+def choose_from(prompt, options, allow_cancel=False):
     # options is list of strings
     while True:
         print()
         for i, opt in enumerate(options, 1):
             print(f"[{i}] {opt}")
-        v = choose_int(prompt, 1, len(options))
+        if allow_cancel:
+            print("[0] Cancel/Back")
+        v = choose_int(prompt, 1, len(options), allow_cancel=allow_cancel)
+        if v is None:
+            return None
         return v - 1
 
 # ---------------------------- Mechanics ----------------------------
@@ -247,9 +253,22 @@ def apply_fatigue(idol: Idol, stamina_cost=0, mental_cost=0):
 def practice(state: GroupState):
     show_roster(state)
     print("\nPractice Mode: Train one idol, or train as a group.")
-    idx = choose_int("Choose idol [1-3] or 4 for group practice: ", 1, 4)
+    idx = choose_int(
+        "Choose idol [1-3] or 4 for group practice (0 to cancel): ",
+        1,
+        4,
+        allow_cancel=True,
+    )
+    if idx is None:
+        print("\nPractice cancelled.")
+        return
 
-    attr_idx = choose_from("Train which attribute? ", [s.title() for s in STATS])
+    attr_idx = choose_from(
+        "Train which attribute? (0 to cancel) ", [s.title() for s in STATS], allow_cancel=True
+    )
+    if attr_idx is None:
+        print("\nPractice cancelled.")
+        return
     attr = STATS[attr_idx]
 
     # Training tuning
@@ -289,10 +308,14 @@ def work(state: GroupState):
     print("\nWork Mode: Gather fans and visibility.")
 
     worker_choice = choose_int(
-        "Choose who works today [1-3] or 4 for everyone: ",
+        "Choose who works today [1-3] or 4 for everyone (0 to cancel): ",
         1,
         len(state.idols) + 1,
+        allow_cancel=True,
     )
+    if worker_choice is None:
+        print("\nWork cancelled.")
+        return
     if worker_choice == len(state.idols) + 1:
         workers = state.idols
         worker_label = "Full group"
@@ -301,9 +324,13 @@ def work(state: GroupState):
         worker_label = workers[0].name
 
     choice = choose_from(
-        "Choose activity: ",
+        "Choose activity (0 to cancel): ",
         ["Hand out flyers", "Guerilla live (small pop-up performance)"],
+        allow_cancel=True,
     )
+    if choice is None:
+        print("\nWork cancelled.")
+        return
 
     if choice == 0:
         # Flyers: steady fan gain, low cost, low fatigue
@@ -364,7 +391,10 @@ def live(state: GroupState):
     print(f"Venue available: {venue_name} (Capacity {capacity})")
     print(f"Song available: {song}")
 
-    form_idx = choose_from("Choose formation: ", formations)
+    form_idx = choose_from("Choose formation (0 to cancel): ", formations, allow_cancel=True)
+    if form_idx is None:
+        print("\nLive cancelled.")
+        return
     formation = formations[form_idx]
 
     # Basic checks / costs
