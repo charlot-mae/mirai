@@ -51,7 +51,7 @@ class Idol:
     def roster_line(self):
         s = self.stats
         base_role = self.role.split("(")[0].strip()
-        return f"{self.name} {self.age} - {base_role}\n" \
+        return f"{self.name} - {self.age} - {base_role}\n" \
                f"  Vocal {s['vocal']:>3} | Dance {s['dance']:>3} | Visual {s['visual']:>3} | Stamina {s['stamina']:>3} | Mental {s['mental']:>3}"
 
 @dataclass
