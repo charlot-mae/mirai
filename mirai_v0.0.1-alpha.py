@@ -287,7 +287,23 @@ def practice(state: GroupState):
 def work(state: GroupState):
     show_roster(state)
     print("\nWork Mode: Gather fans and visibility.")
-    choice = choose_from("Choose activity: ", ["Hand out flyers", "Guerilla live (small pop-up performance)"])
+
+    worker_choice = choose_int(
+        "Choose who works today [1-3] or 4 for everyone: ",
+        1,
+        len(state.idols) + 1,
+    )
+    if worker_choice == len(state.idols) + 1:
+        workers = state.idols
+        worker_label = "Full group"
+    else:
+        workers = [state.idols[worker_choice - 1]]
+        worker_label = workers[0].name
+
+    choice = choose_from(
+        "Choose activity: ",
+        ["Hand out flyers", "Guerilla live (small pop-up performance)"],
+    )
 
     if choice == 0:
         # Flyers: steady fan gain, low cost, low fatigue
@@ -298,16 +314,16 @@ def work(state: GroupState):
         state.funds -= funds_cost
 
         # fan gain depends a bit on visual + mental (confidence)
-        vis = sum(i.stats["visual"] for i in state.idols) / len(state.idols)
-        men = sum(i.stats["mental"] for i in state.idols) / len(state.idols)
+        vis = sum(i.stats["visual"] for i in workers) / len(workers)
+        men = sum(i.stats["mental"] for i in workers) / len(workers)
         gain = int(random.randint(8, 16) + (vis + men) * 0.10 + state.reputation * 4)
         gain = max(5, gain)
 
         state.fans += gain
-        for idol in state.idols:
+        for idol in workers:
             apply_fatigue(idol, stamina_cost=1, mental_cost=1)
 
-        print(f"\nFlyer run complete! +{gain} fans (cost ¥{funds_cost}).")
+        print(f"\nFlyer run complete! {worker_label} +{gain} fans (cost ¥{funds_cost}).")
 
     else:
         # Guerilla live: bigger variance, more fatigue, bigger rep potential
@@ -317,8 +333,10 @@ def work(state: GroupState):
             return
         state.funds -= funds_cost
 
-        perf = state.group_perf()
-        energy = state.group_energy()
+        perf = sum(i.avg_perf for i in workers) / len(workers)
+        energy = sum(
+            (i.stats["stamina"] + i.stats["mental"]) / 2 for i in workers
+        ) / len(workers)
         crowd_roll = random.uniform(0.85, 1.20)
 
         # fan gain scales with performance + a little luck, reduced if exhausted
@@ -330,10 +348,10 @@ def work(state: GroupState):
         rep_delta = (perf - 45) / 900.0 + random.uniform(-0.01, 0.03)
         state.reputation += rep_delta
 
-        for idol in state.idols:
+        for idol in workers:
             apply_fatigue(idol, stamina_cost=4, mental_cost=3)
 
-        print(f"\nGuerilla live success! +{gain} fans (cost ¥{funds_cost}). Rep {rep_delta:+.2f}")
+        print(f"\nGuerilla live success! {worker_label} +{gain} fans (cost ¥{funds_cost}). Rep {rep_delta:+.2f}")
 
 def live(state: GroupState):
     # Only one venue and one song at start
