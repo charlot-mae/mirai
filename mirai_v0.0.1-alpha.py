@@ -9,13 +9,16 @@ Modes:
 - live: perform (local venue only at start)
 """
 
+import json
 import random
 import textwrap
 from dataclasses import dataclass, field
+from pathlib import Path
 
 # ---------------------------- Data Models ----------------------------
 
 STATS = ["vocal", "dance", "visual", "stamina", "mental"]
+SAVE_FILE = Path("mirai_save.json")
 
 @dataclass
 class Idol:
@@ -141,6 +144,78 @@ def show_roster(state: GroupState):
     print("\n--- Roster ---")
     for idx, idol in enumerate(state.idols, 1):
         print(f"[{idx}] {idol.short_card()}")
+
+# ---------------------------- Persistence ----------------------------
+
+def _state_to_dict(state: GroupState):
+    return {
+        "name": state.name,
+        "agency": state.agency,
+        "ai_name": state.ai_name,
+        "day": state.day,
+        "funds": state.funds,
+        "fans": state.fans,
+        "reputation": state.reputation,
+        "last_live_report": state.last_live_report,
+        "idols": [
+            {
+                "name": idol.name,
+                "age": idol.age,
+                "role": idol.role,
+                "blurb": idol.blurb,
+                "stats": {k: int(idol.stats.get(k, 1)) for k in STATS},
+            }
+            for idol in state.idols
+        ],
+    }
+
+def _state_from_dict(data: dict):
+    idols = []
+    for payload in data.get("idols", []):
+        stats = {k: int(payload.get("stats", {}).get(k, 1)) for k in STATS}
+        idol = Idol(
+            name=payload.get("name", "Unknown"),
+            age=int(payload.get("age", 15)),
+            role=payload.get("role", "Member"),
+            blurb=payload.get("blurb", ""),
+            stats=stats,
+        )
+        idol.clamp_stats()
+        idols.append(idol)
+
+    if not idols:
+        return None
+
+    return GroupState(
+        name=data.get("name", "Sunset Symphony"),
+        agency=data.get("agency", "Mirai Productions"),
+        ai_name=data.get("ai_name", "ORACLE//MIRAI"),
+        idols=idols,
+        day=int(data.get("day", 1)),
+        funds=int(data.get("funds", 2000)),
+        fans=int(data.get("fans", 40)),
+        reputation=float(data.get("reputation", 0.0)),
+        last_live_report=data.get("last_live_report", ""),
+    )
+
+def save_state(state: GroupState):
+    try:
+        SAVE_FILE.write_text(
+            json.dumps(_state_to_dict(state), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except OSError as e:
+        print(f"\nCould not save progress: {e}")
+
+def load_state():
+    if not SAVE_FILE.exists():
+        return None
+    try:
+        data = json.loads(SAVE_FILE.read_text(encoding="utf-8"))
+        return _state_from_dict(data)
+    except (OSError, json.JSONDecodeError, ValueError) as e:
+        print(f"\nSave data unreadable; starting new game. ({e})")
+        return None
 
 def choose_int(prompt, lo, hi, allow_blank=False):
     while True:
@@ -377,12 +452,17 @@ def end_day(state: GroupState):
 
 def main():
     random.seed()  # non-deterministic by default
-    state = make_game()
+    state = load_state()
 
-    print("\nWelcome to MIRAI PRODUCTIONS — Idol Manager Sim (Terminal)\n")
-    print("A futuristic AI called ORACLE//MIRAI selected three girls with hidden potential.")
-    print("Their debut unit name is: SUNSET SYMPHONY\n")
-    print("Use option [5] to view member profiles whenever you need details.\n")
+    if state:
+        print("\nLoaded existing manager data from mirai_save.json. Continue where you left off.\n")
+    else:
+        state = make_game()
+        print("\nWelcome to MIRAI PRODUCTIONS — Idol Manager Sim (Terminal)\n")
+        print("A futuristic AI called ORACLE//MIRAI selected three girls with hidden potential.")
+        print("Their debut unit name is: SUNSET SYMPHONY\n")
+        print("Use option [5] to view member profiles whenever you need details.\n")
+        save_state(state)
 
     while True:
         header(state)
@@ -402,6 +482,7 @@ def main():
 
         if choice == 0:
             print("\nThanks for managing Sunset Symphony. Good luck on the road to the future.\n")
+            save_state(state)
             break
         elif choice == 1:
             practice(state)
@@ -418,6 +499,8 @@ def main():
         elif choice == 7:
             end_day(state)
             print("\nDay ended.")
+
+        save_state(state)
 
 if __name__ == "__main__":
     main()
