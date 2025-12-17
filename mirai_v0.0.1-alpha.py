@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sunset Symphony — Simple Idol Manager Sim (Terminal)
+Sunset Symphony - Simple Idol Manager Sim (Terminal)
 Mirai Productions debut group, chosen by a futuristic potential-sensing AI.
 
 Modes:
@@ -45,7 +45,7 @@ class Idol:
 
     def short_card(self):
         s = self.stats
-        return f"{self.name} ({self.age}) — {self.role}\n" \
+        return f"{self.name} ({self.age}) - {self.role}\n" \
                f"  Vocal {s['vocal']:>3} | Dance {s['dance']:>3} | Visual {s['visual']:>3} | Stamina {s['stamina']:>3} | Mental {s['mental']:>3}"
 
 @dataclass
@@ -81,7 +81,7 @@ def make_game():
         role="Leader (quiet, searching for her smile)",
         blurb=(
             "Shy and sharply observant, Aoi speaks softly like she’s afraid of taking up space. "
-            "She calls herself a realist—others might say nihilistic—but something in her keeps "
+            "She calls herself a realist - others might say nihilistic - but something in her keeps "
             "reaching for warmth anyway. The AI chose her as leader for her steadiness under pressure. "
             "She’s learning how to smile on purpose, not by accident."
         ),
@@ -93,7 +93,7 @@ def make_game():
         age=15,
         role="Mood-maker (bubbly, clumsy, sincere)",
         blurb=(
-            "Yui is bright enough to light a hallway—sometimes literally, because she trips over cables. "
+            "Yui is bright enough to light a hallway - sometimes literally, because she trips over cables. "
             "She wants to make people happy more than she wants applause. When she laughs, the room "
             "forgives everything. The AI flagged her “empathy resonance” as unusually high."
         ),
@@ -106,7 +106,7 @@ def make_game():
         role="Strategist (smart, serious, skeptical)",
         blurb=(
             "Rina learns fast, speaks precisely, and doesn’t trust dreams that can’t be measured. "
-            "At first she doubts the project—an AI picking idols felt like a gimmick to her. "
+            "At first she doubts the project - an AI picking idols felt like a gimmick to her. "
             "But she can’t ignore the data: the group is improving, and something real is forming. "
             "She’ll believe in Sunset Symphony when it earns it."
         ),
@@ -376,19 +376,19 @@ def live(state: GroupState):
     # Audience satisfaction determines fan change
     satisfaction = performance_score + random.uniform(-3, 3)
     if satisfaction >= 62:
-        review = "The crowd roared—people stayed to watch twice."
+        review = "The crowd roared - people stayed to watch twice."
         fan_mult = 0.22
         rep_delta = 0.10
     elif satisfaction >= 54:
-        review = "A warm reception—new faces asked for your next schedule."
+        review = "A warm reception - new faces asked for your next schedule."
         fan_mult = 0.14
         rep_delta = 0.05
     elif satisfaction >= 48:
-        review = "A decent showing—some cheers, some polite claps."
+        review = "A decent showing - some cheers, some polite claps."
         fan_mult = 0.08
         rep_delta = 0.02
     else:
-        review = "Nerves showed—but you finished the song together."
+        review = "Nerves showed - but you finished the song together."
         fan_mult = 0.04
         rep_delta = -0.01
 
@@ -413,7 +413,7 @@ def live(state: GroupState):
     state.reputation += rep_delta
 
     report = []
-    report.append(f"LIVE REPORT — {venue_name}")
+    report.append(f"LIVE REPORT - {venue_name}")
     report.append(f"Song: {song}")
     report.append(f"Formation: {formation}")
     report.append("")
@@ -455,13 +455,13 @@ def main():
     state = load_state()
 
     if state:
-        print("\nLoaded existing manager data from mirai_save.json. Continue where you left off.\n")
+        print("\nLoaded your previous session from mirai_save.json. Picking up where you left off.\n")
     else:
         state = make_game()
-        print("\nWelcome to MIRAI PRODUCTIONS — Idol Manager Sim (Terminal)\n")
-        print("A futuristic AI called ORACLE//MIRAI selected three girls with hidden potential.")
-        print("Their debut unit name is: SUNSET SYMPHONY\n")
-        print("Use option [5] to view member profiles whenever you need details.\n")
+        print("\nWelcome to MIRAI PRODUCTIONS - Idol Manager Sim (Terminal)\n")
+        print("ORACLE//MIRAI spotted three rookies it believes have hidden potential.")
+        print("They're debuting together as SUNSET SYMPHONY.\n")
+        print("Use option [5] any time to view member profiles.\n")
         save_state(state)
 
     while True:
