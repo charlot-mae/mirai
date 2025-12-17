@@ -382,7 +382,7 @@ def main():
     print("\nWelcome to MIRAI PRODUCTIONS — Idol Manager Sim (Terminal)\n")
     print("A futuristic AI called ORACLE//MIRAI selected three girls with hidden potential.")
     print("Their debut unit name is: SUNSET SYMPHONY\n")
-    show_profiles(state)
+    print("Use option [5] to view member profiles whenever you need details.\n")
 
     while True:
         header(state)
