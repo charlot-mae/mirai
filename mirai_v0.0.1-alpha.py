@@ -386,6 +386,48 @@ def work(state: GroupState):
 
         print(f"\nGuerilla live success! {worker_label} +{gain} fans (cost ¥{funds_cost}). Rep {rep_delta:+.2f}")
 
+def paid_job(state: GroupState):
+    show_roster(state)
+    print("\nPaid Jobs: Earn funds through appearances.")
+
+    idx = choose_int(
+        "Choose idol for the job [1-3] (0 to cancel): ",
+        1,
+        len(state.idols),
+        allow_cancel=True,
+    )
+    if idx is None:
+        print("\nPaid job cancelled.")
+        return
+
+    idol = state.idols[idx - 1]
+
+    job = choose_from(
+        "Select paid job (0 to cancel): ",
+        ["Speak at event (+¥250)", "Photoshoot (+¥500)"],
+        allow_cancel=True,
+    )
+    if job is None:
+        print("\nPaid job cancelled.")
+        return
+
+    if job == 0:
+        payout = 250
+        stamina_cost, mental_cost = 2, 2
+        rep_delta = 0.01
+        job_name = "speaking event"
+    else:
+        payout = 500
+        stamina_cost, mental_cost = 3, 3
+        rep_delta = 0.02
+        job_name = "photoshoot"
+
+    state.funds += payout
+    state.reputation += rep_delta
+    apply_fatigue(idol, stamina_cost=stamina_cost, mental_cost=mental_cost)
+
+    print(f"\n{idol.name} completed a {job_name}! +¥{payout} funds. Rep {rep_delta:+.2f}")
+
 def live(state: GroupState):
     # Only one venue and one song at start
     venue_name = "Hoshizora Park Stage"
@@ -526,13 +568,14 @@ def main():
         print("[1] Practice (train stats)")
         print("[2] Work (gather fans)")
         print("[3] Live (perform show)")
-        print("[4] Rest (recover)")
-        print("[5] View Profiles")
-        print("[6] View Last Live Report")
-        print("[7] End Day")
+        print("[4] Paid Job (earn funds)")
+        print("[5] Rest (recover)")
+        print("[6] View Profiles")
+        print("[7] View Last Live Report")
+        print("[8] End Day")
         print("[0] Quit")
 
-        choice = choose_int("\n> ", 0, 7)
+        choice = choose_int("\n> ", 0, 8)
 
         if choice == 0:
             print("\nThanks for managing Sunset Symphony. Good luck on the road to the future.\n")
@@ -545,12 +588,14 @@ def main():
         elif choice == 3:
             live(state)
         elif choice == 4:
-            rest_day(state)
+            paid_job(state)
         elif choice == 5:
-            show_profiles(state)
+            rest_day(state)
         elif choice == 6:
-            print("\n" + (state.last_live_report or "No live performed yet."))
+            show_profiles(state)
         elif choice == 7:
+            print("\n" + (state.last_live_report or "No live performed yet."))
+        elif choice == 8:
             end_day(state)
             print("\nDay ended.")
 
